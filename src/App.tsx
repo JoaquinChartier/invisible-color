@@ -4,7 +4,7 @@ import { Board } from "./components/Board";
 import { neonButton, neonInput, neonHandlers, hexToRgba, applyHover, ACCENT, BG } from "./components/styles";
 
 export default function App() {
-  const [state, dispatch] = useReducer(reducer, undefined, () => initialState(9));
+  const [state, dispatch] = useReducer(reducer, undefined, () => initialState(4));
   const [debug, setDebug] = useState(false);
   const [debugUnlocked, setDebugUnlocked] = useState(false);
   const [tags, setTags] = useState<Record<number, string>>({});
