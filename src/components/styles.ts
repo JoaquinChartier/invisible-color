@@ -2,6 +2,8 @@ import type { CSSProperties } from "react";
 
 export const ACCENT = "#a78bfa";
 
+export const BG = "radial-gradient(circle at 30% 30%, #2a2a3a, #131322)";
+
 export function hexToRgba(hex: string, alpha: number): string {
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
@@ -16,7 +18,7 @@ export function neonButton(): {
 } {
   return {
     base: {
-      background: "radial-gradient(circle at 30% 30%, #2a2a3a, #131322)",
+      background: BG,
       border: `1px solid ${hexToRgba(ACCENT, 0.25)}`,
       color: "#a1a1aa",
       borderRadius: "8px",
@@ -45,7 +47,7 @@ export function neonButton(): {
 
 export function neonInput(): CSSProperties {
   return {
-    background: "radial-gradient(circle at 30% 30%, #2a2a3a, #131322)",
+    background: BG,
     border: `1px solid ${hexToRgba(ACCENT, 0.25)}`,
     color: "#e4e4e7",
     borderRadius: "8px",
@@ -63,4 +65,18 @@ export function applyHover(
   style: CSSProperties
 ) {
   Object.assign(e.currentTarget.style, style);
+}
+
+export function neonHandlers(
+  base: CSSProperties,
+  hover: CSSProperties,
+  active: CSSProperties
+) {
+  return {
+    onMouseEnter: (e: React.MouseEvent<HTMLElement>) => applyHover(e, hover),
+    onMouseLeave: (e: React.MouseEvent<HTMLElement>) => applyHover(e, base),
+    onMouseDown: (e: React.MouseEvent<HTMLElement>) => applyHover(e, active),
+    onMouseUp: (e: React.MouseEvent<HTMLElement>) =>
+      applyHover(e, { transform: "scale(1)" }),
+  };
 }

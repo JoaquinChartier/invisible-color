@@ -10,7 +10,6 @@ export function initialState(numColors = 9): State {
     target,
     moves: 0,
     status: "playing",
-    history: [],
     numColors,
   };
 }
@@ -34,7 +33,6 @@ export function reducer(state: State, action: Action): State {
         circles,
         moves: state.moves + 1,
         status: solved ? "won" : "playing",
-        history: [...state.history, action],
       };
     }
 

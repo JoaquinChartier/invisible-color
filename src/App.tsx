@@ -1,7 +1,7 @@
-import { useReducer, useRef, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { reducer, initialState } from "./engine/reducer";
 import { Board } from "./components/Board";
-import { neonButton, neonInput, hexToRgba, applyHover, ACCENT } from "./components/styles";
+import { neonButton, neonInput, neonHandlers, hexToRgba, applyHover, ACCENT, BG } from "./components/styles";
 
 export default function App() {
   const [state, dispatch] = useReducer(reducer, undefined, () => initialState(9));
@@ -11,7 +11,13 @@ export default function App() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [newGameOpen, setNewGameOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
-  const pressTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (pressTimer.current) clearTimeout(pressTimer.current);
+    };
+  }, []);
 
   const revealed = state.status === "revealed" || state.status === "won";
 
@@ -81,7 +87,7 @@ export default function App() {
             height: "24px",
             borderRadius: "50%",
             border: `1px solid ${hexToRgba(ACCENT, 0.4)}`,
-            background: "radial-gradient(circle at 30% 30%, #2a2a3a, #131322)",
+            background: BG,
             color: "#c4b5fd",
             fontSize: "0.8rem",
             fontWeight: 700,
@@ -127,7 +133,7 @@ export default function App() {
               gap: "6px",
               padding: "4px 12px",
               borderRadius: "999px",
-              background: "radial-gradient(circle at 30% 30%, #2a2a3a, #131322)",
+              background: BG,
               border: `1px solid ${hexToRgba(ACCENT, 0.25)}`,
               boxShadow: `0 0 6px ${hexToRgba(ACCENT, 0.15)}, inset 0 0 4px ${hexToRgba(ACCENT, 0.08)}`,
             }}
@@ -172,8 +178,7 @@ export default function App() {
             value={tags[selectedId] || ""}
             onChange={(e) => setTags((t) => ({ ...t, [selectedId]: e.target.value }))}
             onKeyDown={(e) => {
-              if (e.key === "Enter") setSelectedId(null);
-              if (e.key === "Escape") setSelectedId(null);
+              if (e.key === "Enter" || e.key === "Escape") setSelectedId(null);
             }}
             placeholder="Tag this circle…"
             style={neonInput()}
@@ -186,10 +191,7 @@ export default function App() {
                 return next;
               })}
               style={btnBase}
-              onMouseEnter={(e) => applyHover(e, btnHover)}
-              onMouseLeave={(e) => applyHover(e, btnBase)}
-              onMouseDown={(e) => applyHover(e, btnActive)}
-              onMouseUp={(e) => applyHover(e, { transform: "scale(1)" })}
+              {...neonHandlers(btnBase, btnHover, btnActive)}
             >
               Clear
             </button>
@@ -202,10 +204,7 @@ export default function App() {
           <button
             style={btnBase}
             onClick={() => setNewGameOpen((o) => !o)}
-            onMouseEnter={(e) => applyHover(e, btnHover)}
-            onMouseLeave={(e) => applyHover(e, btnBase)}
-            onMouseDown={(e) => applyHover(e, btnActive)}
-            onMouseUp={(e) => applyHover(e, { transform: "scale(1)" })}
+            {...neonHandlers(btnBase, btnHover, btnActive)}
           >
             New Game ▾
           </button>
@@ -271,23 +270,20 @@ export default function App() {
               color: "#fca5a5",
               boxShadow: `0 0 6px ${hexToRgba("#ef4444", 0.15)}, inset 0 0 4px ${hexToRgba("#ef4444", 0.08)}`,
             }}
-            onMouseEnter={(e) =>
-              applyHover(e, {
-                ...btnHover,
-                border: `1px solid ${hexToRgba("#ef4444", 0.7)}`,
-                boxShadow: `0 0 14px ${hexToRgba("#ef4444", 0.55)}, inset 0 0 8px ${hexToRgba("#ef4444", 0.25)}`,
-              })
-            }
-            onMouseLeave={(e) =>
-              applyHover(e, {
+            {...neonHandlers(
+              {
                 ...btnBase,
                 border: `1px solid ${hexToRgba("#ef4444", 0.3)}`,
                 color: "#fca5a5",
                 boxShadow: `0 0 6px ${hexToRgba("#ef4444", 0.15)}, inset 0 0 4px ${hexToRgba("#ef4444", 0.08)}`,
-              })
-            }
-            onMouseDown={(e) => applyHover(e, btnActive)}
-            onMouseUp={(e) => applyHover(e, { transform: "scale(1)" })}
+              },
+              {
+                ...btnHover,
+                border: `1px solid ${hexToRgba("#ef4444", 0.7)}`,
+                boxShadow: `0 0 14px ${hexToRgba("#ef4444", 0.55)}, inset 0 0 8px ${hexToRgba("#ef4444", 0.25)}`,
+              },
+              btnActive
+            )}
           >
             Give Up
           </button>
@@ -306,22 +302,18 @@ export default function App() {
                   }
                 : {}),
             }}
-            onMouseEnter={(e) => applyHover(e, btnHover)}
-            onMouseLeave={(e) =>
-              applyHover(
-                e,
-                debug
-                  ? {
-                      ...btnBase,
-                      border: `1px solid ${hexToRgba(ACCENT, 0.7)}`,
-                      color: "#ede9fe",
-                      boxShadow: `0 0 14px ${hexToRgba(ACCENT, 0.55)}, inset 0 0 8px ${hexToRgba(ACCENT, 0.25)}`,
-                    }
-                  : btnBase
-              )
-            }
-            onMouseDown={(e) => applyHover(e, btnActive)}
-            onMouseUp={(e) => applyHover(e, { transform: "scale(1)" })}
+            {...neonHandlers(
+              debug
+                ? {
+                    ...btnBase,
+                    border: `1px solid ${hexToRgba(ACCENT, 0.7)}`,
+                    color: "#ede9fe",
+                    boxShadow: `0 0 14px ${hexToRgba(ACCENT, 0.55)}, inset 0 0 8px ${hexToRgba(ACCENT, 0.25)}`,
+                  }
+                : btnBase,
+              btnHover,
+              btnActive
+            )}
           >
             Debug: {debug ? "ON" : "OFF"}
           </button>
@@ -398,10 +390,7 @@ export default function App() {
                 width: "100%",
                 padding: "8px",
               }}
-              onMouseEnter={(e) => applyHover(e, btnHover)}
-              onMouseLeave={(e) => applyHover(e, btnBase)}
-              onMouseDown={(e) => applyHover(e, btnActive)}
-              onMouseUp={(e) => applyHover(e, { transform: "scale(1)" })}
+              {...neonHandlers(btnBase, btnHover, btnActive)}
             >
               Got it
             </button>

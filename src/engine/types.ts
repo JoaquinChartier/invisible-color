@@ -10,7 +10,6 @@ export interface State {
   target: number[];
   moves: number;
   status: "playing" | "won" | "revealed";
-  history: Action[];
   numColors: number;
 }
 

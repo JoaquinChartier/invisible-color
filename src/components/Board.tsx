@@ -1,6 +1,7 @@
+import type { CSSProperties } from "react";
 import type { Circle as CircleType } from "../engine/types";
 import { Circle, PALETTE } from "./Circle";
-import { neonButton, hexToRgba, applyHover } from "./styles";
+import { neonButton, hexToRgba, neonHandlers } from "./styles";
 
 interface Props {
   circles: CircleType[];
@@ -15,13 +16,14 @@ interface Props {
 
 export function Board({ circles, target, revealed, debug, tags, selectedId, onSelectCircle, onScroll }: Props) {
   const { base: btnBase, hover: btnHover, active: btnActive } = neonButton();
-  Object.assign(btnBase, {
+  const slotBtn: CSSProperties = {
+    ...btnBase,
     borderRadius: "50%",
     width: "clamp(28px, 7vw, 36px)",
     height: "clamp(28px, 7vw, 36px)",
     justifySelf: "center",
     alignSelf: "center",
-  });
+  };
 
   const makeBtn = (
     key: string,
@@ -31,13 +33,10 @@ export function Board({ circles, target, revealed, debug, tags, selectedId, onSe
   ) => (
     <button
       key={key}
-      style={btnBase}
+      style={slotBtn}
       onClick={onClick}
       aria-label={aria}
-      onMouseEnter={(e) => applyHover(e, btnHover)}
-      onMouseLeave={(e) => applyHover(e, btnBase)}
-      onMouseDown={(e) => applyHover(e, btnActive)}
-      onMouseUp={(e) => applyHover(e, { transform: "scale(1)" })}
+      {...neonHandlers(slotBtn, btnHover, btnActive)}
     >
       {label}
     </button>
