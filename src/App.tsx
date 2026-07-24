@@ -6,8 +6,13 @@ import { Board } from "./components/Board";
 import { neonButton, neonInput, neonHandlers, hexToRgba, applyHover, ACCENT, BG } from "./components/styles";
 
 function buildShareText(state: State): string {
-  const dateStr = new Date(state.seed * 86_400_000).toISOString().slice(0, 10);
-  const mode = state.isDaily ? `Daily ${dateStr}` : "Practice";
+  let mode: string;
+  if (state.isDaily) {
+    const dateStr = new Date(state.seed * 86_400_000).toISOString().slice(0, 10);
+    mode = `Daily ${dateStr}`;
+  } else {
+    mode = "Practice";
+  }
   const result = state.status === "won" ? `${state.moves} moves ✅` : "gave up ❌";
   const url = state.isDaily
     ? `${window.location.origin}${window.location.pathname}`
