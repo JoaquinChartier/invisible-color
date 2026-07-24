@@ -97,12 +97,13 @@ export function Board({ circles, target, revealed, debug, tags, selectedId, onSe
         {circles.map((circle, i) => {
           const row = Math.floor(i / 3);
           const col = i % 3;
-          const slotBg = debug || revealed ? hexToRgba(PALETTE[target[i]], 0.25) : "transparent";
+          const slotBg = debug || revealed ? hexToRgba(PALETTE[target[i]], 0.4) : "transparent";
           return (
             <div
               key={circle.id}
               style={{
                 background: slotBg,
+                border: "1px solid rgba(167, 139, 250, 0.3)",
                 borderRadius: "12px",
                 display: "flex",
                 alignItems: "center",
