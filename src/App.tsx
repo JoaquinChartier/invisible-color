@@ -481,7 +481,7 @@ export default function App() {
               </button>
             </div>
             <p style={{ margin: "0 0 10px" }}>
-              Nine identical circles have hidden colors. Arrange them to match the target grid below. Each of its 9 squares has a color, and some may repeat.
+              Nine identical circles have hidden colors. Arrange them to match the 3x3 grid below (each of its 9 squares has a color, and some may repeat).
             </p>
             <p style={{ margin: "0 0 10px" }}>
               <b style={{ color: "#22c55e" }}>Green border</b>: the circle's color is in the correct position.
