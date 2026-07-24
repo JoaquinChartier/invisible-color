@@ -303,13 +303,15 @@ export default function App() {
       )}
 
       <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "center" }}>
-        <button
-          style={btnBase}
-          onClick={handleDaily}
-          {...neonHandlers(btnBase, btnHover, btnActive)}
-        >
-          Daily
-        </button>
+        {!state.isDaily && (
+          <button
+            style={btnBase}
+            onClick={handleDaily}
+            {...neonHandlers(btnBase, btnHover, btnActive)}
+          >
+            Daily
+          </button>
+        )}
 
         <div style={{ position: "relative", display: "inline-flex" }}>
           <button
