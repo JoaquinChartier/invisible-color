@@ -1,8 +1,67 @@
 import { useEffect, useReducer, useRef, useState } from "react";
+import type { State } from "./engine/types";
 import { reducer, initialState } from "./engine/reducer";
 import { dailySeed } from "./engine/rng";
 import { Board } from "./components/Board";
 import { neonButton, neonInput, neonHandlers, hexToRgba, applyHover, ACCENT, BG } from "./components/styles";
+
+function buildShareText(state: State): string {
+  const dateStr = new Date(state.seed * 86_400_000).toISOString().slice(0, 10);
+  const mode = state.isDaily ? `Daily ${dateStr}` : "Practice";
+  const result = state.status === "won" ? `${state.moves} moves ✅` : "gave up ❌";
+  return `Invisible Color — ${mode}\n${state.numColors} colors · ${result}\n\n${window.location.origin}${window.location.pathname}`;
+}
+
+function ShareButton({ onShare }: { onShare: () => string }) {
+  const [copied, setCopied] = useState(false);
+  const handle = async () => {
+    const text = onShare();
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <button
+      onClick={handle}
+      style={{
+        fontSize: "0.8rem",
+        padding: "4px 14px",
+        borderRadius: 8,
+        border: `1px solid ${hexToRgba(ACCENT, 0.4)}`,
+        background: BG,
+        color: "#c4b5fd",
+        cursor: "pointer",
+        boxShadow: `0 0 6px ${hexToRgba(ACCENT, 0.2)}`,
+        transition: "box-shadow 0.2s, border-color 0.2s, color 0.2s",
+      }}
+      onMouseEnter={(e) =>
+        applyHover(e, {
+          boxShadow: `0 0 12px ${hexToRgba(ACCENT, 0.5)}`,
+          borderColor: hexToRgba(ACCENT, 0.7),
+          color: "#ede9fe",
+        })
+      }
+      onMouseLeave={(e) =>
+        applyHover(e, {
+          boxShadow: `0 0 6px ${hexToRgba(ACCENT, 0.2)}`,
+          borderColor: hexToRgba(ACCENT, 0.4),
+          color: copied ? "#22c55e" : "#c4b5fd",
+        })
+      }
+    >
+      {copied ? "Copied!" : "Share"}
+    </button>
+  );
+}
 
 export default function App() {
   const [state, dispatch] = useReducer(reducer, undefined, () => initialState());
@@ -173,14 +232,20 @@ export default function App() {
       />
 
       {state.status === "won" && (
-        <div style={{ color: "#22c55e", fontWeight: 600, fontSize: "1.1rem", textAlign: "center" }}>
-          You solved it in {state.moves} moves!
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+          <div style={{ color: "#22c55e", fontWeight: 600, fontSize: "1.1rem", textAlign: "center" }}>
+            You solved it in {state.moves} moves!
+          </div>
+          <ShareButton onShare={() => buildShareText(state)} />
         </div>
       )}
 
       {state.status === "revealed" && (
-        <div style={{ color: "#ef4444", fontWeight: 600, fontSize: "1.1rem", textAlign: "center" }}>
-          Solution revealed — better luck next time!
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+          <div style={{ color: "#ef4444", fontWeight: 600, fontSize: "1.1rem", textAlign: "center" }}>
+            Solution revealed — better luck next time!
+          </div>
+          <ShareButton onShare={() => buildShareText(state)} />
         </div>
       )}
 
