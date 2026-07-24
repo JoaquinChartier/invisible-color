@@ -9,7 +9,10 @@ function buildShareText(state: State): string {
   const dateStr = new Date(state.seed * 86_400_000).toISOString().slice(0, 10);
   const mode = state.isDaily ? `Daily ${dateStr}` : "Practice";
   const result = state.status === "won" ? `${state.moves} moves ✅` : "gave up ❌";
-  return `Invisible Color — ${mode}\n${state.numColors} colors · ${result}\n\n${window.location.origin}${window.location.pathname}`;
+  const url = state.isDaily
+    ? `${window.location.origin}${window.location.pathname}`
+    : `${window.location.origin}${window.location.pathname}?seed=${state.seed}&colors=${state.numColors}`;
+  return `Invisible Color — ${mode}\n${state.numColors} colors · ${result}\n\n${url}`;
 }
 
 function ShareButton({ onShare }: { onShare: () => string }) {
@@ -64,7 +67,17 @@ function ShareButton({ onShare }: { onShare: () => string }) {
 }
 
 export default function App() {
-  const [state, dispatch] = useReducer(reducer, undefined, () => initialState());
+  const [state, dispatch] = useReducer(reducer, undefined, () => {
+    const params = new URLSearchParams(window.location.search);
+    const seedParam = params.get("seed");
+    const colorsParam = params.get("colors");
+    if (seedParam !== null) {
+      const seed = Number(seedParam) || 0;
+      const numColors = Math.min(9, Math.max(3, Number(colorsParam) || 4));
+      return initialState(numColors, seed, false);
+    }
+    return initialState();
+  });
   const [debug, setDebug] = useState(false);
   const [debugUnlocked, setDebugUnlocked] = useState(false);
   const [tags, setTags] = useState<Record<number, string>>({});
@@ -78,6 +91,13 @@ export default function App() {
       if (pressTimer.current) clearTimeout(pressTimer.current);
     };
   }, []);
+
+  useEffect(() => {
+    const url = state.isDaily
+      ? `${window.location.origin}${window.location.pathname}`
+      : `${window.location.origin}${window.location.pathname}?seed=${state.seed}&colors=${state.numColors}`;
+    window.history.replaceState(null, "", url);
+  }, [state.seed, state.isDaily, state.numColors]);
 
   const revealed = state.status === "revealed" || state.status === "won";
 
