@@ -1,10 +1,11 @@
 import { useEffect, useReducer, useRef, useState } from "react";
 import { reducer, initialState } from "./engine/reducer";
+import { dailySeed } from "./engine/rng";
 import { Board } from "./components/Board";
 import { neonButton, neonInput, neonHandlers, hexToRgba, applyHover, ACCENT, BG } from "./components/styles";
 
 export default function App() {
-  const [state, dispatch] = useReducer(reducer, undefined, () => initialState(4));
+  const [state, dispatch] = useReducer(reducer, undefined, () => initialState());
   const [debug, setDebug] = useState(false);
   const [debugUnlocked, setDebugUnlocked] = useState(false);
   const [tags, setTags] = useState<Record<number, string>>({});
@@ -25,6 +26,12 @@ export default function App() {
     setTags({});
     setSelectedId(null);
     dispatch({ type: "newGame", numColors });
+  };
+
+  const handleDaily = () => {
+    setTags({});
+    setSelectedId(null);
+    dispatch({ type: "newGame", numColors: 4, seed: dailySeed(), isDaily: true });
   };
 
   const { base: btnBase, hover: btnHover, active: btnActive } = neonButton();
@@ -148,6 +155,12 @@ export default function App() {
         ))}
       </div>
 
+      {state.isDaily && (
+        <div style={{ fontSize: "0.75rem", color: "#a1a1aa", letterSpacing: "0.05em" }}>
+          Daily · {new Date(state.seed * 86_400_000).toISOString().slice(0, 10)}
+        </div>
+      )}
+
       <Board
         circles={state.circles}
         target={state.target}
@@ -200,6 +213,14 @@ export default function App() {
       )}
 
       <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "center" }}>
+        <button
+          style={btnBase}
+          onClick={handleDaily}
+          {...neonHandlers(btnBase, btnHover, btnActive)}
+        >
+          Daily
+        </button>
+
         <div style={{ position: "relative", display: "inline-flex" }}>
           <button
             style={btnBase}
