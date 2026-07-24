@@ -11,9 +11,11 @@ export interface State {
   moves: number;
   status: "playing" | "won" | "revealed";
   numColors: number;
+  seed: number;
+  isDaily: boolean;
 }
 
 export type Action =
   | { type: "scroll"; axis: "row" | "col"; index: number; dir: 1 | -1 }
-  | { type: "newGame"; numColors: number }
+  | { type: "newGame"; numColors: number; seed?: number; isDaily?: boolean }
   | { type: "giveUp" };

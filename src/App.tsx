@@ -1,10 +1,88 @@
 import { useEffect, useReducer, useRef, useState } from "react";
+import type { State } from "./engine/types";
 import { reducer, initialState } from "./engine/reducer";
+import { dailySeed } from "./engine/rng";
 import { Board } from "./components/Board";
 import { neonButton, neonInput, neonHandlers, hexToRgba, applyHover, ACCENT, BG } from "./components/styles";
 
+function buildShareText(state: State): string {
+  let mode: string;
+  if (state.isDaily) {
+    const dateStr = new Date(state.seed * 86_400_000).toISOString().slice(0, 10);
+    mode = `Daily ${dateStr}`;
+  } else {
+    mode = "Practice";
+  }
+  const result = state.status === "won" ? `${state.moves} moves ✅` : "gave up ❌";
+  const url = state.isDaily
+    ? `${window.location.origin}${window.location.pathname}`
+    : `${window.location.origin}${window.location.pathname}?seed=${state.seed}&colors=${state.numColors}`;
+  return `Invisible Color — ${mode}\n${state.numColors} colors · ${result}\n\n${url}`;
+}
+
+function ShareButton({ onShare }: { onShare: () => string }) {
+  const [copied, setCopied] = useState(false);
+  const handle = async () => {
+    const text = onShare();
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <button
+      onClick={handle}
+      style={{
+        fontSize: "0.8rem",
+        padding: "4px 14px",
+        borderRadius: 8,
+        border: `1px solid ${hexToRgba(ACCENT, 0.4)}`,
+        background: BG,
+        color: "#c4b5fd",
+        cursor: "pointer",
+        boxShadow: `0 0 6px ${hexToRgba(ACCENT, 0.2)}`,
+        transition: "box-shadow 0.2s, border-color 0.2s, color 0.2s",
+      }}
+      onMouseEnter={(e) =>
+        applyHover(e, {
+          boxShadow: `0 0 12px ${hexToRgba(ACCENT, 0.5)}`,
+          borderColor: hexToRgba(ACCENT, 0.7),
+          color: "#ede9fe",
+        })
+      }
+      onMouseLeave={(e) =>
+        applyHover(e, {
+          boxShadow: `0 0 6px ${hexToRgba(ACCENT, 0.2)}`,
+          borderColor: hexToRgba(ACCENT, 0.4),
+          color: copied ? "#22c55e" : "#c4b5fd",
+        })
+      }
+    >
+      {copied ? "Copied!" : "Share"}
+    </button>
+  );
+}
+
 export default function App() {
-  const [state, dispatch] = useReducer(reducer, undefined, () => initialState(4));
+  const [state, dispatch] = useReducer(reducer, undefined, () => {
+    const params = new URLSearchParams(window.location.search);
+    const seedParam = params.get("seed");
+    const colorsParam = params.get("colors");
+    if (seedParam !== null) {
+      const seed = Number(seedParam) || 0;
+      const numColors = Math.min(9, Math.max(3, Number(colorsParam) || 4));
+      return initialState(numColors, seed, false);
+    }
+    return initialState();
+  });
   const [debug, setDebug] = useState(false);
   const [debugUnlocked, setDebugUnlocked] = useState(false);
   const [tags, setTags] = useState<Record<number, string>>({});
@@ -19,12 +97,25 @@ export default function App() {
     };
   }, []);
 
+  useEffect(() => {
+    const url = state.isDaily
+      ? `${window.location.origin}${window.location.pathname}`
+      : `${window.location.origin}${window.location.pathname}?seed=${state.seed}&colors=${state.numColors}`;
+    window.history.replaceState(null, "", url);
+  }, [state.seed, state.isDaily, state.numColors]);
+
   const revealed = state.status === "revealed" || state.status === "won";
 
   const handleNewGame = (numColors: number) => {
     setTags({});
     setSelectedId(null);
     dispatch({ type: "newGame", numColors });
+  };
+
+  const handleDaily = () => {
+    setTags({});
+    setSelectedId(null);
+    dispatch({ type: "newGame", numColors: 4, seed: dailySeed(), isDaily: true });
   };
 
   const { base: btnBase, hover: btnHover, active: btnActive } = neonButton();
@@ -148,6 +239,12 @@ export default function App() {
         ))}
       </div>
 
+      {state.isDaily && (
+        <div style={{ fontSize: "0.75rem", color: "#a1a1aa", letterSpacing: "0.05em" }}>
+          Daily · {new Date(state.seed * 86_400_000).toISOString().slice(0, 10)}
+        </div>
+      )}
+
       <Board
         circles={state.circles}
         target={state.target}
@@ -160,14 +257,20 @@ export default function App() {
       />
 
       {state.status === "won" && (
-        <div style={{ color: "#22c55e", fontWeight: 600, fontSize: "1.1rem", textAlign: "center" }}>
-          You solved it in {state.moves} moves!
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+          <div style={{ color: "#22c55e", fontWeight: 600, fontSize: "1.1rem", textAlign: "center" }}>
+            You solved it in {state.moves} moves!
+          </div>
+          <ShareButton onShare={() => buildShareText(state)} />
         </div>
       )}
 
       {state.status === "revealed" && (
-        <div style={{ color: "#ef4444", fontWeight: 600, fontSize: "1.1rem", textAlign: "center" }}>
-          Solution revealed — better luck next time!
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+          <div style={{ color: "#ef4444", fontWeight: 600, fontSize: "1.1rem", textAlign: "center" }}>
+            Solution revealed — better luck next time!
+          </div>
+          <ShareButton onShare={() => buildShareText(state)} />
         </div>
       )}
 
@@ -200,6 +303,16 @@ export default function App() {
       )}
 
       <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "center" }}>
+        {!state.isDaily && (
+          <button
+            style={btnBase}
+            onClick={handleDaily}
+            {...neonHandlers(btnBase, btnHover, btnActive)}
+          >
+            Daily
+          </button>
+        )}
+
         <div style={{ position: "relative", display: "inline-flex" }}>
           <button
             style={btnBase}
