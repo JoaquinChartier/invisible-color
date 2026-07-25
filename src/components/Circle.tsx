@@ -4,13 +4,13 @@ import { calcClue } from "../engine/clue";
 export const PALETTE = [
   "#ef4444",
   "#3b82f6",
-  "#22c55e",
-  "#eab308",
+  "#6366f1",
+  "#d946ef",
   "#a855f7",
   "#06b6d4",
   "#f97316",
   "#ec4899",
-  "#84cc16",
+  "#f43f5e",
 ];
 
 const BORDER_COLORS: Record<Clue, string> = {
