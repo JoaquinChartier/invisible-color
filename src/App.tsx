@@ -88,7 +88,18 @@ export default function App() {
   const [tags, setTags] = useState<Record<number, string>>({});
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [newGameOpen, setNewGameOpen] = useState(false);
-  const [helpOpen, setHelpOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(() => {
+    try {
+      if (localStorage.getItem("ic-seen-help")) return false;
+    } catch {}
+    return true;
+  });
+  const closeHelp = () => {
+    setHelpOpen(false);
+    try {
+      localStorage.setItem("ic-seen-help", "1");
+    } catch {}
+  };
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -435,7 +446,7 @@ export default function App() {
 
       {helpOpen && (
         <div
-          onClick={() => setHelpOpen(false)}
+          onClick={() => closeHelp()}
           style={{
             position: "fixed",
             inset: 0,
@@ -466,7 +477,7 @@ export default function App() {
                 How to Play
               </h2>
               <button
-                onClick={() => setHelpOpen(false)}
+                onClick={() => closeHelp()}
                 style={{
                   background: "transparent",
                   border: "none",
@@ -497,7 +508,7 @@ export default function App() {
               Tap a circle to add a text tag. Fewer colors = harder puzzle!
             </p>
             <button
-              onClick={() => setHelpOpen(false)}
+              onClick={() => closeHelp()}
               style={{
                 ...btnBase,
                 width: "100%",
