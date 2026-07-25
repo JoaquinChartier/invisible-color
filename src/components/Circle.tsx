@@ -29,9 +29,10 @@ interface Props {
   tag: string;
   selected: boolean;
   onSelect: () => void;
+  innerRef?: (el: HTMLDivElement | null) => void;
 }
 
-export function Circle({ circle, row, col, target, revealed, debug, tag, selected, onSelect }: Props) {
+export function Circle({ circle, row, col, target, revealed, debug, tag, selected, onSelect, innerRef }: Props) {
   const clue = calcClue(circle, row, col, target);
   const showColor = revealed || debug;
   const bgColor = showColor ? PALETTE[circle.color] : "#1e1e2e";
@@ -44,6 +45,7 @@ export function Circle({ circle, row, col, target, revealed, debug, tag, selecte
 
   return (
     <div
+      ref={innerRef}
       onClick={onSelect}
       style={{
         width: "clamp(48px, 18vw, 90px)",

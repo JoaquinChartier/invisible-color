@@ -134,7 +134,6 @@ export function Board({ circles, target, revealed, debug, tags, selectedId, onSe
           return (
             <div
               key={circle.id}
-              ref={setCellRef(circle.id)}
               style={{
                 background: slotBg,
                 border: "1px solid rgba(167, 139, 250, 0.3)",
@@ -154,6 +153,7 @@ export function Board({ circles, target, revealed, debug, tags, selectedId, onSe
                 tag={tags[circle.id] || ""}
                 selected={selectedId === circle.id}
                 onSelect={() => onSelectCircle(circle.id)}
+                innerRef={setCellRef(circle.id)}
               />
             </div>
           );
