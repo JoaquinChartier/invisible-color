@@ -35,7 +35,7 @@ export function Board({ circles, target, revealed, debug, tags, selectedId, onSe
           el.style.transition = "none";
           el.style.transform = `translate(${dx}px, ${dy}px)`;
           requestAnimationFrame(() => {
-            el.style.transition = "transform 0.18s ease";
+            el.style.transition = "transform 0.28s ease";
             el.style.transform = "";
           });
         }
