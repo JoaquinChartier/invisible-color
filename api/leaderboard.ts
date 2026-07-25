@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "http";
-import { getDb } from "./_db";
+import { getDb } from "./_db.js";
 import { dailySeed } from "../src/engine/rng";
 
 const MAX_NAME_LEN = 20;
