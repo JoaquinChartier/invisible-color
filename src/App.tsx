@@ -88,7 +88,18 @@ export default function App() {
   const [tags, setTags] = useState<Record<number, string>>({});
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [newGameOpen, setNewGameOpen] = useState(false);
-  const [helpOpen, setHelpOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(() => {
+    try {
+      if (localStorage.getItem("ic-seen-help")) return false;
+    } catch {}
+    return true;
+  });
+  const closeHelp = () => {
+    setHelpOpen(false);
+    try {
+      localStorage.setItem("ic-seen-help", "1");
+    } catch {}
+  };
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -435,7 +446,7 @@ export default function App() {
 
       {helpOpen && (
         <div
-          onClick={() => setHelpOpen(false)}
+          onClick={() => closeHelp()}
           style={{
             position: "fixed",
             inset: 0,
@@ -466,7 +477,7 @@ export default function App() {
                 How to Play
               </h2>
               <button
-                onClick={() => setHelpOpen(false)}
+                onClick={() => closeHelp()}
                 style={{
                   background: "transparent",
                   border: "none",
@@ -481,7 +492,7 @@ export default function App() {
               </button>
             </div>
             <p style={{ margin: "0 0 10px" }}>
-              Nine identical circles have hidden colors. Arrange them to match the 3x3 grid below (each of its 9 squares has a color, and some may repeat).
+              Nine identical circles have hidden colors. Arrange them to match the color pattern in the 3x3 grid below (each of its 9 squares has a color, and some may repeat).
             </p>
             <p style={{ margin: "0 0 10px" }}>
               <b style={{ color: "#22c55e" }}>Green border</b>: the circle's color is in the correct position.
@@ -497,7 +508,7 @@ export default function App() {
               Tap a circle to add a text tag. Fewer colors = harder puzzle!
             </p>
             <button
-              onClick={() => setHelpOpen(false)}
+              onClick={() => closeHelp()}
               style={{
                 ...btnBase,
                 width: "100%",
