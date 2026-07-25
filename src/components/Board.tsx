@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 import type { Circle as CircleType } from "../engine/types";
 import { Circle, PALETTE } from "./Circle";
@@ -16,6 +17,38 @@ interface Props {
 
 export function Board({ circles, target, revealed, debug, tags, selectedId, onSelectCircle, onScroll }: Props) {
   const { base: btnBase, hover: btnHover, active: btnActive } = neonButton();
+
+  const cellRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+  const prevPositions = useRef<Map<number, { x: number; y: number }>>(new Map());
+
+  useLayoutEffect(() => {
+    const prev = prevPositions.current;
+    const next = new Map<number, { x: number; y: number }>();
+    cellRefs.current.forEach((el, id) => {
+      const r = el.getBoundingClientRect();
+      next.set(id, { x: r.left, y: r.top });
+      const p = prev.get(id);
+      if (p) {
+        const dx = p.x - r.left;
+        const dy = p.y - r.top;
+        if (dx !== 0 || dy !== 0) {
+          el.style.transition = "none";
+          el.style.transform = `translate(${dx}px, ${dy}px)`;
+          requestAnimationFrame(() => {
+            el.style.transition = "transform 0.18s ease";
+            el.style.transform = "";
+          });
+        }
+      }
+    });
+    prevPositions.current = next;
+  });
+
+  const setCellRef = (id: number) => (el: HTMLDivElement | null) => {
+    if (el) cellRefs.current.set(id, el);
+    else cellRefs.current.delete(id);
+  };
+
   const slotBtn: CSSProperties = {
     ...btnBase,
     borderRadius: "50%",
@@ -101,6 +134,7 @@ export function Board({ circles, target, revealed, debug, tags, selectedId, onSe
           return (
             <div
               key={circle.id}
+              ref={setCellRef(circle.id)}
               style={{
                 background: slotBg,
                 border: "1px solid rgba(167, 139, 250, 0.3)",
