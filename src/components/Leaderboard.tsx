@@ -5,24 +5,22 @@ import { hexToRgba, ACCENT, BG } from "./styles";
 interface Props {
   open: boolean;
   onClose: () => void;
-  initialMode: "daily" | "alltime";
   seed: number;
   autoSubmit?: { name: string; moves: number; numColors: number } | null;
 }
 
-export function Leaderboard({ open, onClose, initialMode, seed, autoSubmit }: Props) {
-  const [mode, setMode] = useState<"daily" | "alltime">(initialMode);
+export function Leaderboard({ open, onClose, seed, autoSubmit }: Props) {
   const [rows, setRows] = useState<LeaderboardRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitStatus, setSubmitStatus] = useState<string | null>(null);
   const [submittedSeed, setSubmittedSeed] = useState<number | null>(null);
 
-  const load = async (m: "daily" | "alltime", s: number) => {
+  const load = async (s: number) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchLeaderboard(m, s);
+      const data = await fetchLeaderboard(s);
       setRows(data);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
@@ -33,8 +31,8 @@ export function Leaderboard({ open, onClose, initialMode, seed, autoSubmit }: Pr
 
   useEffect(() => {
     if (!open) return;
-    void load(mode, seed);
-  }, [open, mode, seed]);
+    void load(seed);
+  }, [open, seed]);
 
   useEffect(() => {
     if (!open || !autoSubmit) return;
@@ -53,8 +51,6 @@ export function Leaderboard({ open, onClose, initialMode, seed, autoSubmit }: Pr
   }, [open, autoSubmit, seed, submittedSeed]);
 
   if (!open) return null;
-
-  const activeSeed = mode === "daily" ? seed : 0;
 
   return (
     <div
@@ -89,7 +85,7 @@ export function Leaderboard({ open, onClose, initialMode, seed, autoSubmit }: Pr
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
           <h2 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 600, color: "#ede9fe", letterSpacing: "0.03em" }}>
-            Leaderboard
+            Today's Leaderboard
           </h2>
           <button
             onClick={onClose}
@@ -105,28 +101,6 @@ export function Leaderboard({ open, onClose, initialMode, seed, autoSubmit }: Pr
           >
             ×
           </button>
-        </div>
-
-        <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
-          {(["daily", "alltime"] as const).map((m) => (
-            <button
-              key={m}
-              onClick={() => setMode(m)}
-              style={{
-                flex: 1,
-                padding: "6px 10px",
-                borderRadius: 8,
-                fontSize: "0.8rem",
-                cursor: "pointer",
-                border: `1px solid ${mode === m ? hexToRgba(ACCENT, 0.7) : hexToRgba(ACCENT, 0.2)}`,
-                background: mode === m ? hexToRgba(ACCENT, 0.2) : "transparent",
-                color: mode === m ? "#ede9fe" : "#a1a1aa",
-                transition: "all 0.2s",
-              }}
-            >
-              {m === "daily" ? "Today" : "All Time"}
-            </button>
-          ))}
         </div>
 
         {submitStatus && (
@@ -185,11 +159,9 @@ export function Leaderboard({ open, onClose, initialMode, seed, autoSubmit }: Pr
           )}
         </div>
 
-        {mode === "daily" && (
-          <div style={{ marginTop: 10, fontSize: "0.7rem", color: "#52525b", textAlign: "center" }}>
-            Daily seed {activeSeed} · only daily puzzles count
-          </div>
-        )}
+        <div style={{ marginTop: 10, fontSize: "0.7rem", color: "#52525b", textAlign: "center" }}>
+          Daily seed {seed}
+        </div>
       </div>
     </div>
   );

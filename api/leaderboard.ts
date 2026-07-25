@@ -18,12 +18,6 @@ interface ScoreDoc {
   createdAt: Date;
 }
 
-interface LeaderboardRow {
-  name: string;
-  moves: number;
-  numColors: number;
-}
-
 type VercelReq = IncomingMessage & {
   query?: Record<string, string | string[]>;
   body?: unknown;
@@ -76,30 +70,6 @@ export default async function handler(req: VercelReq, res: VercelRes): Promise<v
     ]);
 
     if (req.method === "GET") {
-      const mode = req.query?.mode ?? "daily";
-      const modeStr = Array.isArray(mode) ? mode[0] : mode;
-
-      if (modeStr === "alltime") {
-        const rows = await col
-          .aggregate<LeaderboardRow>([
-            { $sort: { moves: 1 } },
-            {
-              $group: {
-                _id: "$name",
-                name: { $first: "$name" },
-                moves: { $first: "$moves" },
-                numColors: { $first: "$numColors" },
-              },
-            },
-            { $sort: { moves: 1 } },
-            { $limit: TOP_N },
-            { $project: { _id: 0, name: 1, moves: 1, numColors: 1 } },
-          ])
-          .toArray();
-        res.status(200).json({ leaderboard: rows });
-        return;
-      }
-
       const seedParam = req.query?.seed;
       const seed = toInt(Array.isArray(seedParam) ? seedParam[0] : seedParam, 0, 0xffffffff);
       if (seed === null) {

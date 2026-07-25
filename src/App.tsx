@@ -90,7 +90,6 @@ export default function App() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [newGameOpen, setNewGameOpen] = useState(false);
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);
-  const [leaderboardMode, setLeaderboardMode] = useState<"daily" | "alltime">("daily");
   const [autoSubmit, setAutoSubmit] = useState<{ name: string; moves: number; numColors: number } | null>(null);
   const [autoSubmittedSeed, setAutoSubmittedSeed] = useState<number | null>(null);
   const [playerName, setPlayerName] = useState<string>(() => {
@@ -143,7 +142,6 @@ export default function App() {
     if (playerName) {
       setAutoSubmit({ name: playerName, moves: state.moves, numColors: state.numColors });
       setAutoSubmittedSeed(state.seed);
-      setLeaderboardMode("daily");
       setLeaderboardOpen(true);
     }
   }, [state.status, state.isDaily, state.seed, state.moves, state.numColors, playerName, autoSubmittedSeed]);
@@ -330,10 +328,7 @@ export default function App() {
           {state.isDaily && (playerName || autoSubmittedSeed === state.seed) && (
             <button
               style={btnBase}
-              onClick={() => {
-                setLeaderboardMode("daily");
-                setLeaderboardOpen(true);
-              }}
+              onClick={() => setLeaderboardOpen(true)}
               {...neonHandlers(btnBase, btnHover, btnActive)}
             >
               Leaderboard
@@ -454,10 +449,7 @@ export default function App() {
 
         <button
           style={btnBase}
-          onClick={() => {
-            setLeaderboardMode("daily");
-            setLeaderboardOpen(true);
-          }}
+          onClick={() => setLeaderboardOpen(true)}
           {...neonHandlers(btnBase, btnHover, btnActive)}
         >
           Leaderboard
@@ -606,7 +598,6 @@ export default function App() {
           setLeaderboardOpen(false);
           setAutoSubmit(null);
         }}
-        initialMode={leaderboardMode}
         seed={state.isDaily ? state.seed : dailySeed()}
         autoSubmit={autoSubmit}
       />

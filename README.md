@@ -13,7 +13,7 @@ npm run preview  # preview the production build
 
 ## Leaderboard (MongoDB Atlas + Vercel Serverless)
 
-The leaderboard is anonymous: players pick a name (saved in `localStorage` for future plays) and only **daily** puzzles are scored. It has two modes — *Today* (top scores for the current daily seed) and *All Time* (best move count per name across all daily puzzles).
+The leaderboard is anonymous: players pick a name (saved in `localStorage` for future plays) and only **daily** puzzles are scored. It shows the top scores for the current daily seed.
 
 ### Setup
 

@@ -11,9 +11,8 @@ export interface SubmitResult {
   submitted?: { name: string; moves: number; seed: number };
 }
 
-export async function fetchLeaderboard(mode: "daily" | "alltime", seed?: number): Promise<LeaderboardRow[]> {
-  const params = new URLSearchParams({ mode });
-  if (seed !== undefined) params.set("seed", String(seed));
+export async function fetchLeaderboard(seed: number): Promise<LeaderboardRow[]> {
+  const params = new URLSearchParams({ seed: String(seed) });
   const res = await fetch(`/api/leaderboard?${params}`);
   if (!res.ok) throw new Error(`Failed to load leaderboard (${res.status})`);
   const data = (await res.json()) as { leaderboard: LeaderboardRow[] };
