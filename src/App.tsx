@@ -3,6 +3,7 @@ import type { State } from "./engine/types";
 import { reducer, initialState } from "./engine/reducer";
 import { dailySeed } from "./engine/rng";
 import { Board } from "./components/Board";
+import { Leaderboard } from "./components/Leaderboard";
 import { neonButton, neonInput, neonHandlers, hexToRgba, applyHover, ACCENT, BG } from "./components/styles";
 
 function buildShareText(state: State): string {
@@ -88,6 +89,17 @@ export default function App() {
   const [tags, setTags] = useState<Record<number, string>>({});
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [newGameOpen, setNewGameOpen] = useState(false);
+  const [leaderboardOpen, setLeaderboardOpen] = useState(false);
+  const [autoSubmit, setAutoSubmit] = useState<{ name: string; moves: number; numColors: number } | null>(null);
+  const [autoSubmitted, setAutoSubmitted] = useState<{ seed: number; moves: number } | null>(null);
+  const [playerName, setPlayerName] = useState<string>(() => {
+    try {
+      return localStorage.getItem("ic-player-name") || "";
+    } catch {
+      return "";
+    }
+  });
+  const [nameInput, setNameInput] = useState("");
   const [helpOpen, setHelpOpen] = useState(() => {
     try {
       if (localStorage.getItem("ic-seen-help")) return false;
@@ -114,6 +126,24 @@ export default function App() {
       : `${window.location.origin}${window.location.pathname}?seed=${state.seed}&colors=${state.numColors}`;
     window.history.replaceState(null, "", url);
   }, [state.seed, state.isDaily, state.numColors]);
+
+  const saveName = (n: string) => {
+    const clean = n.trim().slice(0, 20);
+    if (!clean) return;
+    setPlayerName(clean);
+    try {
+      localStorage.setItem("ic-player-name", clean);
+    } catch {}
+  };
+
+  useEffect(() => {
+    if (state.status !== "won" || !state.isDaily || !playerName) return;
+    const alreadyBetter = autoSubmitted && autoSubmitted.seed === state.seed && autoSubmitted.moves <= state.moves;
+    if (alreadyBetter) return;
+    setAutoSubmit({ name: playerName, moves: state.moves, numColors: state.numColors });
+    setAutoSubmitted({ seed: state.seed, moves: state.moves });
+    setLeaderboardOpen(true);
+  }, [state.status, state.isDaily, state.seed, state.moves, state.numColors, playerName, autoSubmitted]);
 
   const revealed = state.status === "revealed" || state.status === "won";
 
@@ -272,6 +302,37 @@ export default function App() {
           <div style={{ color: "#22c55e", fontWeight: 600, fontSize: "1.1rem", textAlign: "center" }}>
             You solved it in {state.moves} moves!
           </div>
+          {state.isDaily && !playerName && !(autoSubmitted && autoSubmitted.seed === state.seed) && (
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <input
+                autoFocus
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") saveName(nameInput);
+                }}
+                placeholder="Your name for the leaderboard…"
+                maxLength={20}
+                style={{ ...neonInput(), width: "220px" }}
+              />
+              <button
+                style={btnBase}
+                onClick={() => saveName(nameInput)}
+                {...neonHandlers(btnBase, btnHover, btnActive)}
+              >
+                Save
+              </button>
+            </div>
+          )}
+          {state.isDaily && (playerName || (autoSubmitted && autoSubmitted.seed === state.seed)) && (
+            <button
+              style={btnBase}
+              onClick={() => setLeaderboardOpen(true)}
+              {...neonHandlers(btnBase, btnHover, btnActive)}
+            >
+              Leaderboard
+            </button>
+          )}
           <ShareButton onShare={() => buildShareText(state)} />
         </div>
       )}
@@ -384,6 +445,14 @@ export default function App() {
             </div>
           )}
         </div>
+
+        <button
+          style={btnBase}
+          onClick={() => setLeaderboardOpen(true)}
+          {...neonHandlers(btnBase, btnHover, btnActive)}
+        >
+          Leaderboard
+        </button>
 
         {state.status === "playing" && (
           <button
@@ -521,6 +590,16 @@ export default function App() {
           </div>
         </div>
       )}
+
+      <Leaderboard
+        open={leaderboardOpen}
+        onClose={() => {
+          setLeaderboardOpen(false);
+          setAutoSubmit(null);
+        }}
+        seed={state.isDaily ? state.seed : dailySeed()}
+        autoSubmit={autoSubmit}
+      />
     </div>
   );
 }
