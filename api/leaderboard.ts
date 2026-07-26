@@ -5,7 +5,7 @@ import { dailySeed } from "../src/engine/rng.js";
 const MAX_NAME_LEN = 20;
 const MIN_MOVES = 1;
 const MAX_MOVES = 10000;
-const MAX_DAILY_SUBMITS_PER_IP = 10;
+const MAX_DAILY_SUBMITS_PER_IP = 5;
 const IP_WINDOW_MS = 24 * 60 * 60 * 1000;
 const TOP_N = 50;
 
