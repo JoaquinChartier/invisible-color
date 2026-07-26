@@ -1,5 +1,3 @@
-import { dailySeed } from "../engine/rng";
-
 export interface LeaderboardRow {
   name: string;
   moves: number;
@@ -31,5 +29,3 @@ export async function submitScore(name: string, seed: number, moves: number, num
   }
   return (await res.json()) as SubmitResult;
 }
-
-export { dailySeed };

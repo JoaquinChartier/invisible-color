@@ -9,6 +9,8 @@ const MAX_DAILY_SUBMITS_PER_IP = 5;
 const IP_WINDOW_MS = 24 * 60 * 60 * 1000;
 const TOP_N = 50;
 
+let indexesEnsured = false;
+
 interface ScoreDoc {
   name: string;
   seed: number;
@@ -63,11 +65,14 @@ export default async function handler(req: VercelReq, res: VercelRes): Promise<v
   try {
     const db = await getDb();
     const col = db.collection<ScoreDoc>("scores");
-    await col.createIndexes([
-      { key: { name: 1, seed: 1 }, unique: true },
-      { key: { seed: 1, moves: 1 } },
-      { key: { ip: 1, createdAt: -1 } },
-    ]);
+    if (!indexesEnsured) {
+      await col.createIndexes([
+        { key: { name: 1, seed: 1 }, unique: true },
+        { key: { seed: 1, moves: 1 } },
+        { key: { ip: 1, createdAt: -1 } },
+      ]);
+      indexesEnsured = true;
+    }
 
     if (req.method === "GET") {
       const seedParam = req.query?.seed;

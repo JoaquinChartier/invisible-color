@@ -91,7 +91,7 @@ export default function App() {
   const [newGameOpen, setNewGameOpen] = useState(false);
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);
   const [autoSubmit, setAutoSubmit] = useState<{ name: string; moves: number; numColors: number } | null>(null);
-  const [autoSubmittedSeed, setAutoSubmittedSeed] = useState<number | null>(null);
+  const [autoSubmitted, setAutoSubmitted] = useState<{ seed: number; moves: number } | null>(null);
   const [playerName, setPlayerName] = useState<string>(() => {
     try {
       return localStorage.getItem("ic-player-name") || "";
@@ -137,14 +137,13 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (state.status !== "won" || !state.isDaily) return;
-    if (autoSubmittedSeed === state.seed) return;
-    if (playerName) {
-      setAutoSubmit({ name: playerName, moves: state.moves, numColors: state.numColors });
-      setAutoSubmittedSeed(state.seed);
-      setLeaderboardOpen(true);
-    }
-  }, [state.status, state.isDaily, state.seed, state.moves, state.numColors, playerName, autoSubmittedSeed]);
+    if (state.status !== "won" || !state.isDaily || !playerName) return;
+    const alreadyBetter = autoSubmitted && autoSubmitted.seed === state.seed && autoSubmitted.moves <= state.moves;
+    if (alreadyBetter) return;
+    setAutoSubmit({ name: playerName, moves: state.moves, numColors: state.numColors });
+    setAutoSubmitted({ seed: state.seed, moves: state.moves });
+    setLeaderboardOpen(true);
+  }, [state.status, state.isDaily, state.seed, state.moves, state.numColors, playerName, autoSubmitted]);
 
   const revealed = state.status === "revealed" || state.status === "won";
 
@@ -303,7 +302,7 @@ export default function App() {
           <div style={{ color: "#22c55e", fontWeight: 600, fontSize: "1.1rem", textAlign: "center" }}>
             You solved it in {state.moves} moves!
           </div>
-          {state.isDaily && !playerName && autoSubmittedSeed !== state.seed && (
+          {state.isDaily && !playerName && !(autoSubmitted && autoSubmitted.seed === state.seed) && (
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
               <input
                 autoFocus
@@ -325,7 +324,7 @@ export default function App() {
               </button>
             </div>
           )}
-          {state.isDaily && (playerName || autoSubmittedSeed === state.seed) && (
+          {state.isDaily && (playerName || (autoSubmitted && autoSubmitted.seed === state.seed)) && (
             <button
               style={btnBase}
               onClick={() => setLeaderboardOpen(true)}

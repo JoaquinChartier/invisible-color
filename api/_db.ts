@@ -21,10 +21,6 @@ function connect(): Promise<MongoClient> {
 }
 
 export async function getDb(): Promise<Db> {
-  if (process.env.NODE_ENV === "production") {
-    const client = await connect();
-    return client.db(DB_NAME);
-  }
   if (!global.__mongoClient) {
     global.__mongoClient = connect();
   }
