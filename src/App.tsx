@@ -397,9 +397,9 @@ export default function App() {
             <div
               style={{
                 position: "absolute",
-                top: "100%",
+                bottom: "100%",
                 left: 0,
-                marginTop: 4,
+                marginBottom: 4,
                 background: "#1a1a2e",
                 border: `1px solid ${hexToRgba(ACCENT, 0.3)}`,
                 borderRadius: 8,
